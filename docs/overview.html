@@ -1,7 +1,7 @@
 <!doctype html>
 <!-- Source for overview.png. Regenerate with:
      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --hide-scrollbars \
-       --window-size=1400,770 --force-device-scale-factor=2 --virtual-time-budget=3000 \
+       --window-size=1400,660 --force-device-scale-factor=2 --virtual-time-budget=3000 \
        --screenshot=docs/overview.png docs/overview.html -->
 <html lang="en">
 <head>
@@ -10,7 +10,7 @@
 <style>
   :root { --paper:#F3F0EA; --card:#FBFAF7; --ink:#1F1E1B; --muted:#8C877E; --rule:#D8D2C7; --accent:#B9573A; }
   * { box-sizing:border-box; margin:0; }
-  html, body { width:1400px; height:770px; background:var(--paper); }
+  html, body { width:1400px; height:660px; background:var(--paper); }
   body { font-family:Inter, sans-serif; color:var(--ink); padding:56px 80px; -webkit-font-smoothing:antialiased; position:relative; }
   .top { display:flex; justify-content:space-between; font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
   .grid { display:grid; grid-template-columns:520px 1fr; gap:30px; margin-top:44px; }
@@ -22,11 +22,10 @@
   svg { display:block; margin-top:8px; }
   svg text { font-family:Inter, sans-serif; }
   svg .mono { font-family:"JetBrains Mono", monospace; }
-  .foot { position:absolute; left:80px; right:80px; bottom:48px; display:flex; gap:40px; font-size:14px; color:var(--muted); border-top:1px solid var(--rule); padding-top:18px; }
 </style>
 </head>
 <body>
-  <div class="top"><span>personal ops</span><span>scheduled jobs for your Mac</span></div>
+  <div class="top"><span>Personal Ops Kit</span><span>scheduled jobs for your Mac</span></div>
   <div class="grid">
     <div>
       <h1>Small jobs that read what is already on your Mac, and only bother Claude when there is news.</h1>
@@ -89,10 +88,5 @@
     </svg>
   </div>
 
-  <div class="foot">
-    <span>Runs on your Mac, so it can read your own sessions, files and tools</span>
-    <span>Passwords and keys stay locked away</span>
-    <span>Takes a day off when your Claude usage is high</span>
-  </div>
 </body>
 </html>

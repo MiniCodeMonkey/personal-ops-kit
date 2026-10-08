@@ -1,5 +1,3 @@
-# personal ops
-
 ![Ask once, and every Monday your Mac reads the week of Claude Code sessions stored on it. Three terminal windows each show the same correction, and Claude leaves a note: "No em dashes" came up 6 times in 4 projects, put it in CLAUDE.md once?](docs/overview.png)
 
 Scheduled jobs for your Mac, written with and run by Claude Code.
@@ -43,7 +41,7 @@ needed), puts the engine in `~/.personal-ops-kit`, copies the built-in jobs into
 `~/personal-ops`, starts a background service, and offers to install a Claude
 Code skill. Then open the dashboard at http://127.0.0.1:7777.
 
-Or just ask Claude Code: "install personal ops from github.com/MiniCodeMonkey/personal-ops-kit".
+Or just ask Claude Code: "install Personal Ops Kit from github.com/MiniCodeMonkey/personal-ops-kit".
 
 ## After installing
 
@@ -59,6 +57,8 @@ Or just ask Claude Code: "install personal ops from github.com/MiniCodeMonkey/pe
 4. **Pause anything you do not want** with `jobctl pause <job>`.
 5. **Make your first own job** by asking Claude Code for it (see
    [Add a job](#add-a-job)).
+
+![The dashboard: eleven jobs down the left, each with its schedule, next run and a strip of recent results, and an inbox of unread artifacts on the right, such as a meeting prep for tomorrow and a nightly research finding.](docs/dashboard.png)
 
 ## Built-in jobs
 
