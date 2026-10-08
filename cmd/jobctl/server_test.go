@@ -416,3 +416,20 @@ func TestArtifactLinksIssuesOnlyWhenConfigured(t *testing.T) {
 		t.Errorf("plain job's artifact must not get issue links or a card")
 	}
 }
+
+func TestDashboardRefusesForeignHost(t *testing.T) {
+	s := &Server{origin: "http://127.0.0.1:7777"}
+	for host, want := range map[string]int{
+		"127.0.0.1:7777":    http.StatusOK,
+		"localhost:7777":    http.StatusOK,
+		"evil.example:7777": http.StatusForbidden,
+	} {
+		req := httptest.NewRequest(http.MethodGet, "/favicon.svg", nil)
+		req.Host = host
+		rec := httptest.NewRecorder()
+		s.Handler().ServeHTTP(rec, req)
+		if rec.Code != want {
+			t.Errorf("host %s: got %d, want %d", host, rec.Code, want)
+		}
+	}
+}

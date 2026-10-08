@@ -67,7 +67,27 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/stop/", s.mutate(s.handleStop))
 	mux.HandleFunc("/api/pause/", s.mutate(s.handlePause(true)))
 	mux.HandleFunc("/api/resume/", s.mutate(s.handlePause(false)))
-	return mux
+	return s.loopbackHost(mux)
+}
+
+// loopbackHost refuses requests whose Host is not the dashboard's own address.
+// Binding to 127.0.0.1 keeps other machines out, but a website can point its own
+// hostname at 127.0.0.1 (DNS rebinding) and then read the dashboard as same-origin.
+// Such requests still carry the attacker's hostname, so checking Host stops them.
+func (s *Server) loopbackHost(next http.Handler) http.Handler {
+	if s.origin == "" {
+		return next
+	}
+	host := strings.TrimPrefix(s.origin, "http://")
+	_, port, _ := strings.Cut(host, ":")
+	allowed := map[string]bool{host: true, "localhost:" + port: true}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !allowed[r.Host] {
+			http.Error(w, "unknown host", http.StatusForbidden)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 // mutate guards every state-changing endpoint.
