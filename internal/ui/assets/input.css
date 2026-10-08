@@ -1,0 +1,379 @@
+/* `source(none)` disables automatic filesystem scanning. Without it Tailwind walks
+   up from this file and hoovers in anything HTML-shaped it finds -- node_modules,
+   scratch files, old builds -- so the output silently depends on what happens to be
+   lying around. Sources are named explicitly instead. */
+@import "tailwindcss" source(none);
+@source "../templates";
+
+/* The palette is carried in plain custom properties so one media query swaps every
+   colour at once, and registered with `@theme inline` so utilities reference the
+   variable rather than copying its value. Without `inline` the generated utilities
+   bake in the light values and dark mode silently does nothing. */
+@theme inline {
+  --color-paper:        var(--paper);
+  --color-raised:       var(--paper-raised);
+  --color-sunk:         var(--paper-sunk);
+  --color-ink:          var(--ink);
+  --color-muted:        var(--ink-muted);
+  --color-faint:        var(--ink-faint);
+  --color-rule:         var(--rule);
+  --color-rule-strong:  var(--rule-strong);
+  --color-accent:       var(--accent);
+  --color-accent-soft:  var(--accent-soft);
+  --color-good:         var(--good);
+  --color-good-soft:    var(--good-soft);
+  --color-caution:      var(--caution);
+  --color-caution-soft: var(--caution-soft);
+  --color-bad:          var(--bad);
+  --color-bad-soft:     var(--bad-soft);
+
+  --font-sans:  -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-mono:  ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+:root {
+  --paper:        #fbf9f5;
+  --paper-raised: #ffffff;
+  --paper-sunk:   #f2eee6;
+  --ink:          #1c1a17;
+  --ink-muted:    #5c574f;
+  /* Was #8a8377, which is 3.57:1 on paper -- below AA for the 11-13px text this
+     carries (timestamps, sizes, section labels). Darkened to clear 4.5:1 against
+     the sunk log background too, not just paper. The memo template has the same
+     original value and the same problem. */
+  --ink-faint:    #6f6a60;
+  --rule:         #e2ddd2;
+  /* Control boundaries, not decorative dividers. A secondary button's fill is
+     within 1.05:1 of the page, so this border is the only thing that makes it
+     perceivable as a control -- it has to clear the 3:1 non-text minimum. Plain
+     dividers keep the lighter --rule. */
+  --rule-strong:  #948b7e;
+  --accent:       #8a4b2a;
+  --accent-soft:  #f3e7de;
+  /* Text placed on a solid accent fill. Must flip with the theme: the dark accent is
+     a light peach, where white text is 2.49:1 and effectively invisible. */
+  --on-accent:    #ffffff;
+  --good:         #3f6b5f;
+  --good-soft:    #e4efeb;
+  --caution:      #7a5c12;
+  --caution-soft: #f7eed6;
+  --bad:          #97331f;
+  --bad-soft:     #f7e3de;
+  --focus:        #8a4b2a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper:        #16151a;
+    --paper-raised: #1e1d24;
+    --paper-sunk:   #121116;
+    --ink:          #ebe7e0;
+    --ink-muted:    #a8a29a;
+    --ink-faint:    #918a7e;   /* was #7d766c at 4.05:1 */
+    --rule:         #322f38;
+    --rule-strong:  #6b6578;
+    --accent:       #e0916a;
+    --accent-soft:  #2c2118;
+    --on-accent:    #1a120c;
+    --good:         #6fb3a0;
+    --good-soft:    #1b2723;
+    --caution:      #d9b45c;
+    --caution-soft: #2a2415;
+    --bad:          #e08b74;
+    --bad-soft:     #2e1c17;
+    --focus:        #e0916a;
+  }
+}
+
+/* ---------------------------------------------------------------- foundations */
+
+/* One focus treatment for everything interactive, defined once. Keyboard users get
+   a ring; pointer users do not, because :focus-visible distinguishes them. */
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* ---------------------------------------------------------------- components */
+
+/* Buttons carry three levels of emphasis and nothing else. Every level shares the
+   same height, radius and focus behaviour so a row of them aligns optically; only
+   weight and colour change. 36px tall clears the comfortable-target floor without
+   looking chunky at this density. */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  min-height: 2.25rem; padding-inline: .95rem;
+  border-radius: 6px; border: 1px solid transparent;
+  font-size: .8125rem; font-weight: 550; line-height: 1;
+  cursor: pointer; white-space: nowrap;
+  transition: background-color .12s ease, border-color .12s ease, color .12s ease;
+}
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.btn-primary   { background: var(--accent); color: var(--on-accent); }
+.btn-primary:not(:disabled):hover  { filter: brightness(1.08); }
+.btn-primary:not(:disabled):active { filter: brightness(.94); }
+
+.btn-secondary { background: var(--paper-raised); color: var(--ink); border-color: var(--rule-strong); }
+.btn-secondary:not(:disabled):hover  { background: var(--paper-sunk); }
+.btn-secondary:not(:disabled):active { background: var(--rule); }
+
+/* Stopping a run is destructive but recoverable, so it reads as an outline rather
+   than a filled red button -- reserve the loudest treatment for the irreversible. */
+.btn-danger { background: transparent; color: var(--bad); border-color: var(--bad); }
+.btn-danger:not(:disabled):hover { background: var(--bad-soft); }
+
+.btn-quiet { background: transparent; color: var(--ink-muted); border-color: transparent; padding-inline: .5rem; }
+.btn-quiet:hover { color: var(--ink); background: var(--paper-sunk); }
+
+/* A smaller size for buttons that sit inside a header row or a banner, where the
+   36px default would dominate the line it belongs to. */
+.btn-sm { min-height: 1.75rem; padding-inline: .65rem; font-size: .75rem; }
+
+/* Run-history rows are their own component rather than `.row` bent into shape with
+   `!important` overrides. They are a different thing: fixed columns, no selection
+   bar, denser vertical rhythm. */
+.run-row {
+  display: flex; align-items: baseline; gap: .75rem;
+  width: 100%; text-align: left; cursor: pointer;
+  padding: .5rem; border: 0; border-bottom: 1px solid var(--rule);
+  background: transparent; color: inherit; font-size: .8125rem;
+  transition: background-color .12s ease;
+}
+.run-row:hover { background: var(--paper-sunk); }
+.run-row[aria-current="true"] { background: var(--accent-soft); }
+.run-row .when { width: 7rem; flex: none; font-variant-numeric: tabular-nums; color: var(--ink-muted); }
+.run-row .dur  { width: 3.75rem; flex: none; font-variant-numeric: tabular-nums; color: var(--ink-faint); }
+.run-row .out  { width: 6rem; flex: none; }
+.run-row .what { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-muted); }
+@media (max-width: 40rem) {
+  .run-row { flex-wrap: wrap; gap: .25rem .75rem; }
+  .run-row .what { width: 100%; }
+}
+
+/* Status is never carried by colour alone -- every pill has a word in it, so it
+   survives greyscale, colour blindness, and a screenshot in a Slack thread. */
+.pill {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .15rem .45rem; border-radius: 4px;
+  font-size: .6875rem; font-weight: 650; letter-spacing: .04em; text-transform: uppercase;
+  white-space: nowrap;
+}
+.pill-ok      { background: var(--good-soft);    color: var(--good); }
+.pill-warn    { background: var(--caution-soft); color: var(--caution); }
+.pill-fail    { background: var(--bad-soft);     color: var(--bad); }
+.pill-skip    { background: var(--paper-sunk);   color: var(--ink-muted); box-shadow: inset 0 0 0 1px var(--rule); }
+.pill-running { background: var(--accent-soft);  color: var(--accent); }
+
+/* The signature element: one tick per recent run, oldest left. A job that has been
+   quietly gated or failing for a week shows it here without being opened, which is
+   this design's whole reason for existing. Informational, not decorative -- if the
+   run history were not the thing most likely to go unnoticed, this would be cut. */
+.strip { display: flex; gap: 2px; align-items: flex-end; }
+.strip i {
+  display: block; width: 3px; height: 10px; border-radius: 1px;
+  background: var(--rule-strong);
+}
+.strip i[data-o="ok"]      { background: var(--good); }
+.strip i[data-o="warn"]    { background: var(--caution); }
+.strip i[data-o="fail"]    { background: var(--bad); height: 13px; }
+.strip i[data-o="skip"]    { background: var(--rule-strong); height: 6px; }
+.strip i[data-o="running"] { background: var(--accent); }
+
+/* Sidebar rows. 44px minimum so they are comfortable targets, and the selected row
+   is marked by an accent bar rather than colour alone. */
+.row {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  min-height: 2.75rem; padding: .5rem 1rem .5rem calc(1rem - 3px);
+  border: 0; border-left: 3px solid transparent; background: transparent; color: inherit;
+  transition: background-color .12s ease;
+}
+.row:hover { background: var(--paper-sunk); }
+.row[aria-current="true"] { border-left-color: var(--accent); background: var(--accent-soft); }
+.row[data-paused="true"] .row-title { color: var(--ink-muted); }
+
+.spin {
+  display: inline-block; width: .7rem; height: .7rem; border-radius: 50%;
+  border: 2px solid currentColor; border-right-color: transparent;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Prose for rendered memos and digests. These are documents this app did not author,
+   so the styling hangs off element selectors rather than utility classes. */
+.reader-prose { font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.65; }
+.reader-prose > :first-child { margin-top: 0; }
+.reader-prose h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -.015em; margin: 0 0 .6rem; }
+.reader-prose h2 { font-size: 1.25rem; font-weight: 650; letter-spacing: -.01em; margin: 2rem 0 .5rem; }
+.reader-prose h3 {
+  font-family: var(--font-sans); font-size: .6875rem; font-weight: 650;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--accent);
+  margin: 2.25rem 0 .6rem;
+}
+.reader-prose p  { margin: 0 0 1rem; }
+.reader-prose ul { margin: 0 0 1rem; padding-left: 1.15rem; }
+.reader-prose li { margin-bottom: .65rem; }
+.reader-prose a  { color: var(--accent); text-underline-offset: 2px; }
+.reader-prose strong { font-weight: 650; }
+.reader-prose code {
+  font-family: var(--font-mono); font-size: .78rem; color: var(--ink-muted);
+}
+.reader-prose em { font-style: italic; }
+.reader-prose del { color: var(--ink-faint); }
+.reader-prose ol { margin: 0 0 1rem; padding-left: 1.4rem; }
+.reader-prose blockquote { margin: 0 0 1rem; padding-left: .9rem; border-left: 2px solid var(--rule-strong); color: var(--ink-muted); }
+.reader-prose pre { margin: 0 0 1rem; padding: .75rem .9rem; overflow-x: auto; border-radius: .375rem; background: var(--paper-sunk); }
+.reader-prose pre code { font-size: .78rem; color: var(--ink); }
+.reader-prose hr { border: 0; border-top: 1px solid var(--rule); margin: 1.5rem 0; }
+/* Tables: anything GFM-shaped in a memo.
+   Sans and small so a wide table reads as data, not prose. */
+.reader-prose table { width: 100%; border-collapse: collapse; margin: 0 0 1.25rem; font-family: var(--font-sans); font-size: .8125rem; line-height: 1.4; }
+.reader-prose th, .reader-prose td { padding: .4rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; text-align: left; }
+.reader-prose th { font-size: .6875rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); font-weight: 600; }
+.reader-prose td:first-child { white-space: nowrap; }
+
+/* Issue links and their hover card. The link is a quiet monospace chip; the card
+   is absolutely positioned inside the reader article (which is the scroll
+   container), so it follows the text when the memo scrolls. */
+.reader-prose a.issue {
+  font-family: var(--font-mono); font-size: .82em; text-decoration: none;
+  padding: .05em .35em; border-radius: .3rem; background: var(--accent-soft); color: var(--accent);
+  border-bottom: 1px dotted var(--accent);
+}
+.reader-prose a.issue:hover { background: var(--accent); color: var(--on-accent); }
+.reader-prose { position: relative; }
+.issue-card {
+  position: absolute; z-index: 20; width: 26rem; max-width: calc(100% - 1.5rem);
+  padding: .8rem .95rem; border-radius: .5rem; border: 1px solid var(--rule-strong);
+  background: var(--paper-raised); box-shadow: 0 10px 30px rgba(0,0,0,.14);
+  font-family: var(--font-sans); font-size: .8125rem; line-height: 1.45; color: var(--ink);
+}
+.issue-card-head { display: flex; justify-content: space-between; gap: .75rem; margin-bottom: .2rem; }
+.issue-card-id { font-family: var(--font-mono); color: var(--accent); }
+.issue-card-status { font-size: .6875rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+.issue-card-title { font-weight: 650; font-size: .9rem; margin-bottom: .5rem; }
+.issue-card-meta { display: grid; grid-template-columns: 5rem 1fr; gap: .15rem .5rem; margin: 0 0 .55rem; }
+.issue-card-meta dt { color: var(--ink-faint); }
+.issue-card-meta dd { margin: 0; }
+.issue-card-label { display: inline-block; padding: 0 .4em; border-radius: .3rem; background: var(--paper-sunk); font-size: .75rem; }
+.issue-card-desc { color: var(--ink-muted); border-top: 1px solid var(--rule); padding-top: .5rem; }
+.issue-card-foot { margin-top: .55rem; font-size: .75rem; color: var(--ink-faint); }
+.issue-card-foot a { color: var(--accent); }
+
+/* Job icons: Heroicons outline at 1.5 stroke, sized by context, never coloured on
+   their own -- they inherit text colour so they stay a quiet identifier, not a
+   badge. In the sidebar the status dot sits on the icon's corner. */
+.job-icon { position: relative; display: inline-flex; width: 1rem; height: 1rem; vertical-align: -.15em; }
+.job-icon .icon { width: 100%; height: 100%; }
+.job-icon-lg { width: 1.25rem; height: 1.25rem; }
+.job-icon-xl { width: 1.5rem; height: 1.5rem; }
+.job-dot {
+  position: absolute; right: -3px; bottom: -3px; width: .5rem; height: .5rem;
+  border-radius: 50%; box-shadow: 0 0 0 2px var(--paper-raised);
+}
+.row:hover .job-dot { box-shadow: 0 0 0 2px var(--paper-sunk); }
+.row[aria-current="true"] .job-dot { box-shadow: 0 0 0 2px var(--accent-soft); }
+.zero-name { display: inline-flex; align-items: center; gap: .45rem; }
+
+/* Unread is carried by a dot plus weight, never the dot alone; the badge counts it.
+   Both use the accent rather than a fourth status colour, because "unread" is a
+   call to attention and not a verdict on the run. */
+.dot-unread { display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; background: var(--accent); flex: none; }
+.badge {
+  display: inline-flex; align-items: center; min-width: 1.25rem; padding: 0 .4rem;
+  border-radius: 999px; background: var(--accent); color: var(--on-accent);
+  font-size: .6875rem; font-weight: 650; line-height: 1.25rem; font-variant-numeric: tabular-nums;
+}
+.badge-quiet { background: var(--paper-sunk); color: var(--ink-muted); box-shadow: inset 0 0 0 1px var(--rule); }
+
+/* Filter tabs on the reading list. The current one is a filled chip; the rest are
+   quiet text, so three of them read as one control rather than three buttons. */
+.tab {
+  display: inline-flex; align-items: center; gap: .35rem;
+  min-height: 1.85rem; padding-inline: .7rem; border-radius: 999px;
+  font-size: .8125rem; font-weight: 550; color: var(--ink-muted); text-decoration: none;
+  border: 1px solid transparent;
+}
+.tab:hover { background: var(--paper-sunk); color: var(--ink); }
+.tab[aria-current="page"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-soft); }
+.tab[aria-current="page"] .badge { background: var(--accent); }
+
+/* Reading-list rows: dot, link, star. Rows are their own component for the same
+   reason .run-row is -- fixed gutters, denser rhythm, nothing selected. */
+.hub-row {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .7rem .25rem; border-bottom: 1px solid var(--rule);
+  transition: background-color .12s ease;
+}
+.hub-row:hover { background: var(--paper-sunk); }
+
+.star {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2rem; height: 2rem; border-radius: 6px; border: 0; background: transparent;
+  color: var(--ink-faint); font-size: 1.05rem; cursor: pointer;
+  transition: color .12s ease, background-color .12s ease;
+}
+.star:hover { color: var(--accent); background: var(--accent-soft); }
+.star-on { color: var(--accent); }
+
+/* Inbox zero. The one place the dashboard speaks in the reader's serif: reading is
+   done, so the page borrows the memo's voice. The horizon is the run strip laid
+   flat and fading -- the signature mark, at rest. It draws in once on arrival. */
+.zero { max-width: 34rem; margin: 5rem auto 0; padding-inline: 1rem; }
+.zero-horizon { display: block; width: 100%; height: 2.5rem; margin-bottom: 2.25rem; overflow: visible; }
+.zero-horizon rect {
+  fill: var(--good); opacity: .85;
+  transform-origin: bottom; transform: scaleY(0);
+  animation: tick-rise .6s cubic-bezier(.2,.8,.2,1) forwards;
+  animation-delay: calc(var(--i) * 22ms);
+}
+.zero-horizon rect:nth-child(4n+1) { fill: var(--accent); }
+@keyframes tick-rise { to { transform: scaleY(1); } }
+.zero-title {
+  margin: 0; font-family: var(--font-serif); font-weight: 500;
+  font-size: clamp(2rem, 4vw, 2.75rem); letter-spacing: -.02em; line-height: 1.05; color: var(--ink);
+}
+.zero-sub { margin: .85rem 0 0; font-size: .9375rem; line-height: 1.55; color: var(--ink-muted); max-width: 28rem; }
+.zero-next { list-style: none; margin: 2.5rem 0 0; padding: 0; border-top: 1px solid var(--rule); }
+.zero-next li { border-bottom: 1px solid var(--rule); }
+.zero-next a {
+  display: grid; grid-template-columns: 7.5rem 1fr auto; align-items: baseline; gap: 1rem;
+  padding: .7rem .25rem; color: inherit; font-size: .875rem; transition: background-color .12s ease;
+}
+.zero-next a:hover { background: var(--paper-sunk); }
+.zero-when  { font-variant-numeric: tabular-nums; color: var(--ink-muted); }
+.zero-name  { font-weight: 550; color: var(--ink); }
+.zero-until { font-size: .75rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.zero-links { display: flex; gap: .75rem; margin: 1.75rem 0 0; font-size: .8125rem; color: var(--ink-faint); }
+.zero-links a { color: var(--ink-muted); text-decoration: none; }
+.zero-links a:hover { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .zero-horizon rect { transform: none; animation: none; } }
+
+/* The job's own explanation. Prose, but the dashboard's prose -- sans, muted,
+   measured -- not the memo reader's serif; this is the app describing itself. */
+.about { max-width: 46rem; font-size: .875rem; line-height: 1.6; color: var(--ink-muted); }
+.about > :first-child { margin-top: 0; }
+.about > :last-child { margin-bottom: 0; }
+.about p, .about ul, .about ol { margin: 0 0 .75rem; }
+.about ul, .about ol { padding-left: 1.15rem; }
+.about li { margin-bottom: .25rem; }
+.about strong { color: var(--ink); font-weight: 600; }
+.about a { color: var(--accent); text-underline-offset: 2px; }
+.about code { font-family: var(--font-mono); font-size: .78rem; color: var(--ink); }
+.about h1, .about h2, .about h3 {
+  margin: 1.25rem 0 .4rem; font-size: .6875rem; font-weight: 650;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint);
+}
+
+/* Empty states are an invitation to act, not an apology, so they get the same care
+   as a populated pane rather than a centred shrug. */
+.empty {
+  border: 1px dashed var(--rule-strong); border-radius: 8px;
+  padding: 1.5rem; text-align: center; color: var(--ink-muted); font-size: .8125rem;
+}

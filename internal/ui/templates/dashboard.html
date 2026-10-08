@@ -1,0 +1,379 @@
+{{define "page"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{if .Selected}}{{.Selected.Name}} · {{else if .Artifact}}{{.Artifact.Title}} · {{end}}Personal Ops</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>{{.CSS}}</style>
+</head>
+<body class="m-0 bg-sunk font-sans text-sm text-ink">
+
+<div id="app" class="mx-auto my-5 max-w-7xl overflow-hidden rounded-[10px] border border-rule bg-paper shadow-sm{{if .Reading}} !my-0 !max-w-none !rounded-none{{end}}">
+
+  <div id="offline" hidden role="alert"
+       class="flex items-center gap-2 border-b border-bad bg-bad-soft px-4 py-2 text-[0.8125rem] text-ink">
+    <span aria-hidden="true">⚠</span>
+    <span><strong>Lost contact with the daemon.</strong> Retrying — job schedules are unaffected while this page is disconnected.</span>
+  </div>
+
+  <header class="flex items-center gap-3 border-b border-rule bg-raised px-4 py-3">
+    <a href="/" class="text-sm font-semibold tracking-tight text-ink no-underline">Personal Ops</a>
+    <a href="/artifacts" class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[0.8125rem] text-muted no-underline hover:bg-sunk hover:text-ink">
+      Inbox{{if .UnreadCount}}<span class="badge">{{.UnreadCount}}</span>{{end}}
+    </a>
+    <a href="/artifacts?show=marked" class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[0.8125rem] text-muted no-underline hover:bg-sunk hover:text-ink">
+      <span aria-hidden="true">★</span> Saved{{if .MarkedCount}}<span class="badge badge-quiet">{{.MarkedCount}}</span>{{end}}
+    </a>
+    <p class="m-0 ml-auto flex items-center gap-2 text-[0.8125rem] text-muted">
+      <span class="size-2 shrink-0 rounded-full {{if .Daemon.Degraded}}bg-caution{{else}}bg-good{{end}}" aria-hidden="true"></span>
+      <span>{{.Daemon.Status}}</span>
+    </p>
+  </header>
+
+  <div id="cols" class="grid min-h-[34rem] grid-cols-1 {{if .Reading}}md:grid-cols-1{{else}}md:grid-cols-[16.5rem_1fr]{{end}}">
+
+    {{if not .Reading}}
+    <aside class="border-b border-rule bg-raised py-3 md:border-r md:border-b-0" aria-label="Jobs">
+      <h2 class="mb-1 px-4 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-faint">Jobs</h2>
+      <ul role="list" class="m-0 list-none p-0">
+        {{range .Jobs}}
+        <li>
+          <a href="/jobs/{{.Name}}" class="row block no-underline" {{if .Selected}}aria-current="true"{{end}}>
+            <span class="flex items-center gap-2">
+              <span class="job-icon shrink-0" aria-hidden="true">{{icon .Icon}}<span class="job-dot {{.DotClass}}"></span></span>
+              <span class="row-title truncate font-medium text-ink">{{.Name}}</span>
+              <span class="strip ml-auto" role="img" aria-label="{{.StripLabel}}">
+                {{range .Strip}}<i data-o="{{.}}"></i>{{end}}
+              </span>
+            </span>
+            <span class="mt-1 block text-xs text-faint">{{.Subtitle}}</span>
+          </a>
+        </li>
+        {{end}}
+      </ul>
+
+    </aside>
+    {{end}}
+
+    <main class="min-w-0 px-6 py-6 md:px-8">
+      {{if .Reading}}{{template "reader" .}}{{else if .Selected}}{{template "job" .}}{{else}}{{template "hub" .}}{{end}}
+    </main>
+  </div>
+</div>
+
+<script>
+// Coming back with the browser's Back button restores this page from the
+// back-forward cache, read state and all, so a memo just opened still shows as
+// unread until a refresh. Cache-Control: no-store no longer opts out of that cache
+// in Chrome, so ask for a fresh copy whenever a restore happens.
+window.addEventListener('pageshow', (e) => { if (e.persisted) location.reload(); });
+
+// Poll while a run is in flight, and surface a lost daemon rather than looking idle.
+(function () {
+  const running = {{.SelectedRunning}};
+  const offline = document.getElementById('offline');
+  let failures = 0;
+
+  async function tick() {
+    try {
+      const r = await fetch('/api/health', { cache: 'no-store' });
+      if (!r.ok) throw new Error('bad status');
+      failures = 0;
+      offline.hidden = true;
+      if (running) location.reload();
+    } catch (e) {
+      // One miss is a hiccup; two in a row is worth saying out loud.
+      if (++failures >= 2) offline.hidden = false;
+    }
+  }
+  setInterval(tick, running ? 3000 : 15000);
+})();
+</script>
+</body>
+</html>{{end}}
+
+{{define "hub"}}
+<div class="flex flex-wrap items-end gap-x-4 gap-y-2">
+  <div>
+    <h2 class="m-0 text-[1.35rem] font-semibold leading-tight tracking-tight">Artifacts</h2>
+    <p class="mt-1 mb-0 text-[0.8125rem] text-muted">{{.UnreadCount}} unread · {{.MarkedCount}} saved · {{.TotalCount}} total across {{len .Jobs}} job{{if ne (len .Jobs) 1}}s{{end}}</p>
+  </div>
+  <nav class="ml-auto flex gap-1" aria-label="Filter">
+    <a href="/artifacts" class="tab" {{if eq .Show "unread"}}aria-current="page"{{end}}>Unread{{if .UnreadCount}} <span class="badge">{{.UnreadCount}}</span>{{end}}</a>
+    <a href="/artifacts?show=marked" class="tab" {{if eq .Show "marked"}}aria-current="page"{{end}}>★ Saved</a>
+    <a href="/artifacts?show=all" class="tab" {{if eq .Show "all"}}aria-current="page"{{end}}>All</a>
+  </nav>
+</div>
+
+{{if .Problems}}
+<div class="mt-6 rounded-md border border-bad bg-bad-soft px-3.5 py-3 text-[0.8125rem]">
+  <strong>Some jobs could not be loaded.</strong>
+  <ul class="mt-2 mb-0 list-disc pl-5">{{range .Problems}}<li class="font-mono text-xs">{{.}}</li>{{end}}</ul>
+</div>
+{{end}}
+
+{{if .Hub}}
+{{range .Groups}}
+<div class="mt-7 flex items-baseline gap-3">
+  <h3 class="m-0 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-faint">{{.Label}}</h3>
+  <span class="h-px flex-1 bg-rule"></span>
+  <span class="text-xs tabular-nums text-faint">{{len .Rows}}</span>
+</div>
+<ul role="list" class="m-0 mt-1 list-none border-t border-rule p-0">
+  {{range .Rows}}
+  <li class="hub-row" {{if .Unread}}data-unread="true"{{end}}>
+    <span class="w-2 shrink-0 text-center">{{if .Unread}}<span class="dot-unread" role="img" aria-label="unread"></span>{{end}}</span>
+    <span class="job-icon job-icon-lg shrink-0 {{if .Unread}}text-ink{{else}}text-faint{{end}}" aria-hidden="true">{{icon .Icon}}</span>
+    <a href="/artifact/{{.Job}}/{{.File}}" class="min-w-0 flex-1 no-underline">
+      <span class="block truncate text-[0.9375rem] {{if .Unread}}font-semibold text-ink{{else}}font-medium text-muted{{end}}">{{.Title}}</span>
+      <span class="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-faint">
+        <span class="font-medium text-muted">{{.Job}}</span>
+        <span>{{.Date}}</span>
+        <span>{{.Size}}</span>
+        <span class="pill {{.PillClass}}">{{.OutcomeText}}</span>
+      </span>
+    </a>
+    <form method="post" action="/api/bookmark/{{.Job}}/{{.File}}" class="m-0 shrink-0">
+      <input type="hidden" name="back" value="/artifacts{{if ne $.Show "unread"}}?show={{$.Show}}{{end}}">
+      <button class="star {{if .Marked}}star-on{{end}}" aria-pressed="{{.Marked}}" title="{{if .Marked}}Remove bookmark{{else}}Bookmark{{end}}">{{if .Marked}}★{{else}}☆{{end}}</button>
+    </form>
+  </li>
+  {{end}}
+</ul>
+{{end}}
+{{else}}
+{{if eq .Show "unread"}}
+<section class="zero" aria-label="Inbox empty">
+  <svg class="zero-horizon" viewBox="0 0 640 40" preserveAspectRatio="none" aria-hidden="true">
+    {{range $i := seq 40}}<rect x="{{mul $i 16}}" y="{{tickY $i}}" width="4" height="{{tickH $i}}" rx="1" style="--i:{{$i}}"/>{{end}}
+  </svg>
+  <h2 class="zero-title">Nothing waiting.</h2>
+  <p class="zero-sub">Every memo the jobs have left has been read. The strip is quiet until the next one lands.</p>
+  {{if .Upcoming}}
+  <ol class="zero-next" aria-label="Next runs">
+    {{range .Upcoming}}
+    <li><a href="/jobs/{{.Name}}" class="no-underline">
+      <span class="zero-when">{{.When}}</span>
+      <span class="zero-name"><span class="job-icon" aria-hidden="true">{{icon .Icon}}</span>{{.Name}}</span>
+      <span class="zero-until">{{.Until}}</span>
+    </a></li>
+    {{end}}
+  </ol>
+  {{end}}
+  <p class="zero-links"><a href="/artifacts?show=marked">★ Saved</a><span aria-hidden="true">·</span><a href="/artifacts?show=all">Browse all {{.TotalCount}}</a></p>
+</section>
+{{else}}
+<div class="empty mt-6">
+  {{if eq .Show "marked"}}
+  <p class="m-0 mb-1 text-ink">Nothing saved yet.</p>
+  <p class="m-0">Star an artifact from its reader or the list to keep it here.</p>
+  {{else}}
+  <p class="m-0">Nothing produced yet. Pick a job and run it.</p>
+  {{end}}
+</div>
+{{end}}
+{{end}}
+{{end}}
+
+{{define "job"}}
+{{$j := .Selected}}
+{{if .Daemon.GapNotice}}
+<div class="mb-5 flex items-start gap-2.5 rounded-md border border-caution bg-caution-soft px-3.5 py-2.5 text-[0.8125rem]">
+  <span aria-hidden="true">⚠</span><span>{{.Daemon.GapNotice}}</span>
+</div>
+{{end}}
+
+<div class="flex flex-wrap items-start gap-x-4 gap-y-3">
+  <div class="min-w-0">
+    <h2 class="m-0 flex items-center gap-2.5 text-[1.35rem] font-semibold leading-tight tracking-tight"><span class="job-icon job-icon-xl text-muted" aria-hidden="true">{{icon $j.Icon}}</span>{{$j.Name}}</h2>
+    <p class="mt-1 mb-0 flex flex-wrap items-center gap-2 text-[0.8125rem] text-muted">
+      {{if $j.Running}}<span class="pill pill-running"><span class="spin" aria-hidden="true"></span>running</span>{{end}}
+      {{if $j.Paused}}<span class="pill pill-skip">paused</span>{{end}}
+      {{$j.Description}}{{if $j.Model}} · {{$j.Model}}{{end}}
+    </p>
+  </div>
+  <div class="ml-auto flex flex-wrap gap-2">
+    {{if $j.Running}}
+      <form method="post" action="/api/stop/{{$j.Name}}"><button class="btn btn-danger">Stop run</button></form>
+    {{else}}
+      <form method="post" action="/api/run/{{$j.Name}}"><button class="btn btn-primary">Run now</button></form>
+      {{if $j.Gated}}
+      <form method="post" action="/api/run/{{$j.Name}}?force=1">
+        <button class="btn btn-secondary" title="Skips the weekly quota check">Run anyway</button>
+      </form>
+      {{end}}
+    {{end}}
+    <form method="post" action="/api/{{if $j.Paused}}resume{{else}}pause{{end}}/{{$j.Name}}">
+      <button class="btn btn-secondary">{{if $j.Paused}}Resume schedule{{else}}Pause schedule{{end}}</button>
+    </form>
+  </div>
+</div>
+
+{{if $j.About}}
+<div class="about mt-6">{{$j.About}}</div>
+{{end}}
+
+{{if $j.Notice}}
+<div class="mt-6 rounded-md border border-rule bg-sunk px-3.5 py-3 text-[0.8125rem]">{{$j.Notice}}</div>
+{{end}}
+
+<dl class="mt-7 grid grid-cols-1 gap-x-8 border-t border-rule text-[0.8125rem] sm:grid-cols-2">
+  <div class="flex items-baseline gap-4 border-b border-rule py-2.5">
+    <dt class="w-24 shrink-0 text-faint">Schedule</dt>
+    <dd class="m-0">{{$j.ScheduleHuman}}{{if ne $j.ScheduleHuman $j.ScheduleText}} <span class="font-mono text-xs text-faint">{{$j.ScheduleText}}</span>{{end}}</dd>
+  </div>
+  <div class="flex items-baseline gap-4 border-b border-rule py-2.5">
+    <dt class="w-24 shrink-0 text-faint">Next run</dt><dd class="m-0">{{$j.NextRun}}</dd>
+  </div>
+  <div class="flex items-baseline gap-4 border-b border-rule py-2.5">
+    <dt class="w-24 shrink-0 text-faint">Last run</dt><dd class="m-0">{{$j.LastRun}}</dd>
+  </div>
+  <div class="flex items-baseline gap-4 border-b border-rule py-2.5">
+    <dt class="w-24 shrink-0 text-faint">Output</dt>
+    <dd class="m-0">{{if $j.LastArtifact}}<a class="text-accent underline underline-offset-2" href="/artifact/{{$j.Name}}/{{$j.LastArtifact}}">{{$j.LastArtifact}}</a>{{else}}<span class="text-faint">None yet</span>{{end}}</dd>
+  </div>
+</dl>
+
+<div class="mt-8 flex items-baseline gap-3">
+  <h3 class="m-0 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-faint">Recent runs</h3>
+  <span class="h-px flex-1 bg-rule"></span>
+</div>
+{{if $j.Runs}}
+<ul role="list" class="m-0 mt-1 list-none border-t border-rule p-0">
+  {{range $j.Runs}}
+  <li>
+    <a href="/jobs/{{$j.Name}}?run={{.ID}}" class="run-row no-underline" {{if .Selected}}aria-current="true"{{end}}>
+      <span class="when">{{.When}}</span>
+      <span class="dur">{{.Duration}}</span>
+      <span class="out"><span class="pill {{.PillClass}}">{{.OutcomeText}}</span></span>
+      <span class="what">{{.Summary}}</span>
+    </a>
+  </li>
+  {{end}}
+</ul>
+{{else}}
+<div class="empty mt-2">
+  <p class="m-0 mb-3 text-ink">This job has not run yet.</p>
+  <p class="m-0 mb-4">Run it once now to check it works before the schedule takes over.</p>
+  <form method="post" action="/api/run/{{$j.Name}}"><button class="btn btn-primary">Run now</button></form>
+</div>
+{{end}}
+
+<div class="mt-8 flex items-baseline gap-3">
+  <h3 class="m-0 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-faint">Output{{if $j.LogTitle}} · {{$j.LogTitle}}{{end}}</h3>
+  <span class="h-px flex-1 bg-rule"></span>
+</div>
+{{if $j.Log}}
+<pre {{if $j.Running}}role="log" aria-live="polite"{{end}} class="m-0 mt-2 max-h-72 overflow-auto whitespace-pre-wrap rounded-md border border-rule bg-sunk px-3.5 py-2.5 font-mono text-xs leading-relaxed text-muted">{{$j.Log}}</pre>
+{{else}}
+<div class="empty mt-2"><p class="m-0">Output appears here once the job has run.</p></div>
+{{end}}
+{{end}}
+
+{{define "reader"}}
+<div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+  <a href="/artifacts" class="btn btn-quiet btn-sm no-underline">← Inbox</a>
+  <div class="min-w-0">
+    <h2 class="m-0 truncate text-[0.9375rem] font-semibold tracking-tight">{{.Artifact.Title}}</h2>
+    <p class="m-0 flex items-center gap-1.5 truncate font-mono text-xs text-faint"><a href="/jobs/{{.Artifact.Job}}" class="inline-flex items-center gap-1 text-faint no-underline hover:text-ink"><span class="job-icon" aria-hidden="true">{{icon .Artifact.Icon}}</span>{{.Artifact.Job}}</a> · {{.Artifact.Path}}</p>
+  </div>
+  <div class="ml-auto flex items-center gap-2">
+    <form method="post" action="/api/bookmark/{{.Artifact.Job}}/{{.Artifact.File}}" class="m-0">
+      <input type="hidden" name="back" value="/artifact/{{.Artifact.Job}}/{{.Artifact.File}}">
+      <button class="btn btn-secondary btn-sm" aria-pressed="{{.Artifact.Marked}}">{{if .Artifact.Marked}}★ Saved{{else}}☆ Save{{end}}</button>
+    </form>
+    <button type="button" id="copy-claude" class="btn btn-primary btn-sm" data-cmd="{{.Artifact.Command}}"
+            title="Copies a shell command that starts a Claude Code session on this artifact">Open in Claude Code</button>
+  </div>
+</div>
+<p id="copy-hint" hidden class="mb-3 rounded-md border border-rule bg-sunk px-3 py-2 font-mono text-xs text-muted"></p>
+<script>
+// Clipboard, not a launch: the daemon has no shell aliases and no say over which
+// terminal window gets the session.
+(function () {
+  const btn = document.getElementById('copy-claude');
+  const hint = document.getElementById('copy-hint');
+  btn.addEventListener('click', async () => {
+    const cmd = btn.dataset.cmd;
+    hint.hidden = false;
+    hint.textContent = cmd;
+    try {
+      await navigator.clipboard.writeText(cmd);
+      btn.textContent = 'Copied — paste in a terminal';
+    } catch (e) {
+      btn.textContent = 'Select and copy the command below';
+    }
+    setTimeout(() => { btn.textContent = 'Open in Claude Code'; }, 2500);
+  });
+})();
+</script>
+{{if .Artifact.IsHTML}}
+<iframe src="/artifact/{{.Artifact.Job}}/{{.Artifact.File}}?raw=1" title="{{.Artifact.Title}}"
+        class="h-[calc(100vh-11rem)] w-full rounded-lg border border-rule bg-raised"></iframe>
+{{else}}
+<article class="reader-prose h-[calc(100vh-11rem)] overflow-auto rounded-lg border border-rule bg-raised px-8 py-7">
+  <div class="mx-auto max-w-[46rem]">{{.Artifact.HTML}}</div>
+  {{if .Artifact.IssueCards}}
+  <div id="issue-card" class="issue-card" hidden></div>
+  <script>
+  // Hover cards for issue links. Data is the job's own state/issues.json, served
+  // by /api/issue/<job>/<id> -- local, no tracker call; a miss just means no card.
+  (function () {
+    const card = document.getElementById('issue-card');
+    const job = {{.Artifact.Job}};
+    const cache = new Map();
+    let hideTimer = null, current = null;
+
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const ago = (iso) => { const d = (Date.now() - new Date(iso)) / 864e5; return d < 1 ? 'today' : Math.round(d) + 'd ago'; };
+
+    function render(d) {
+      const is = d.issue, cyc = d.cycle;
+      const desc = (is.description || '').replace(/\s+/g, ' ').trim();
+      return `<div class="issue-card-head"><span class="issue-card-id">${esc(is.id)}</span>` +
+        `<span class="issue-card-status">${esc(is.status)}</span></div>` +
+        `<div class="issue-card-title">${esc(is.title)}</div>` +
+        `<dl class="issue-card-meta">` +
+        `<dt>Assignee</dt><dd>${esc(is.assignee || '—')}</dd>` +
+        `<dt>Cycle</dt><dd>${cyc ? esc('Cycle ' + cyc.number) : (is.cycleId ? 'other' : '—')}</dd>` +
+        `<dt>Labels</dt><dd>${(is.labels || []).length ? is.labels.map(l => `<span class="issue-card-label">${esc(l)}</span>`).join(' ') : '—'}</dd>` +
+        `<dt>Updated</dt><dd>${esc(ago(is.updatedAt))}${is.childCount ? ' · ' + is.childCount + ' sub-issue' + (is.childCount > 1 ? 's' : '') : ''}</dd>` +
+        `</dl>` +
+        (desc ? `<div class="issue-card-desc">${esc(desc.slice(0, 320))}${desc.length > 320 ? '…' : ''}</div>` : '') +
+        `<div class="issue-card-foot">Snapshot ${esc(d.asOf)} · <a href="${esc(d.url)}" rel="noreferrer">Open ↗</a></div>`;
+    }
+
+    async function show(a) {
+      const id = a.dataset.issue;
+      current = id;
+      let d = cache.get(id);
+      if (d === undefined) {
+        try { const r = await fetch(`/api/issue/${encodeURIComponent(job)}/${encodeURIComponent(id)}`); d = r.ok ? await r.json() : null; }
+        catch { d = null; }
+        cache.set(id, d);
+      }
+      if (!d || current !== id) return;
+      card.innerHTML = render(d);
+      card.hidden = false;
+      const r = a.getBoundingClientRect(), art = card.parentElement.getBoundingClientRect();
+      let left = r.left - art.left + card.parentElement.scrollLeft, top = r.bottom - art.top + card.parentElement.scrollTop + 6;
+      if (left + card.offsetWidth > art.width - 12) left = Math.max(12, art.width - card.offsetWidth - 12);
+      card.style.left = left + 'px'; card.style.top = top + 'px';
+    }
+    function hide() { hideTimer = setTimeout(() => { card.hidden = true; current = null; }, 120); }
+
+    document.querySelectorAll('.reader-prose a.issue').forEach(a => {
+      a.addEventListener('mouseenter', () => { clearTimeout(hideTimer); show(a); });
+      a.addEventListener('mouseleave', hide);
+      a.addEventListener('focus', () => show(a));
+      a.addEventListener('blur', hide);
+    });
+    card.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+    card.addEventListener('mouseleave', hide);
+  })();
+  </script>
+  {{end}}
+</article>
+{{end}}
+{{end}}

@@ -1,0 +1,15 @@
+# Job output and your own jobs live under ~/ops, never in here. What follows is
+# build products and debris.
+
+# Compiled binaries and the downloaded Tailwind toolchain.
+bin/
+
+# The compiled stylesheet IS committed (see internal/ui/assets/app.css) so a clone
+# can build without fetching a CSS toolchain. Nothing else generated belongs here.
+
+.DS_Store
+*.bak
+*.bak.*
+*.orig
+*.new
+__pycache__/

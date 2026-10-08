@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TITLE -- Nightly Research</title>
+<!-- Inlined rather than linked because a memo has to open from disk, offline, with no
+     daemon running. Mirrors internal/ui/assets/favicon.svg; edit both together. -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%238a4b2a'/><g fill='%23fbf9f5'><rect x='2' y='12' width='4' height='14' rx='1'/><rect x='10' y='6' width='4' height='20' rx='1'/><rect x='18' y='16' width='4' height='10' rx='1'/><rect x='26' y='10' width='4' height='16' rx='1'/></g></svg>">
+<!--
+  House template for nightly research memos. Self-contained by design: no external
+  fonts, stylesheets, scripts, or images, so the page opens correctly from disk
+  years from now and offline.
+
+  Fill the marked regions. Keep this stylesheet and add to it rather than
+  replacing it, so a week of memos reads as one publication. Every colour is a
+  variable defined for both themes; if you introduce a new one, define it in both
+  :root and the dark block or it will disappear for half the readers.
+-->
+<style>
+  :root {
+    --paper:        #fbf9f5;
+    --paper-raised: #ffffff;
+    --ink:          #1c1a17;
+    --ink-muted:    #5c574f;
+    --ink-faint:    #8a8377;
+    --rule:         #e2ddd2;
+    --accent:       #8a4b2a;
+    --accent-soft:  #f3e7de;
+    --caution:      #7a5c12;
+    --caution-soft: #f7eed6;
+    --series-1:     #8a4b2a;
+    --series-2:     #3f6b5f;
+    --series-3:     #6a5a8c;
+    --series-4:     #a1802c;
+    --series-5:     #4a6785;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:        #16151a;
+      --paper-raised: #1e1d24;
+      --ink:          #ebe7e0;
+      --ink-muted:    #a8a29a;
+      --ink-faint:    #7d766c;
+      --rule:         #322f38;
+      --accent:       #e0916a;
+      --accent-soft:  #2c2118;
+      --caution:      #d9b45c;
+      --caution-soft: #2a2415;
+      --series-1:     #e0916a;
+      --series-2:     #6fb3a0;
+      --series-3:     #a495cf;
+      --series-4:     #d4b155;
+      --series-5:     #7ea3cc;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 3.5rem 1.5rem 6rem;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .page { max-width: 46rem; margin: 0 auto; }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1rem; margin-bottom: 2.5rem; }
+  .kicker {
+    font-family: var(--sans); font-size: 0.6875rem; font-weight: 650;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 0.75rem;
+  }
+  h1 {
+    font-size: clamp(1.75rem, 4.5vw, 2.5rem); line-height: 1.15;
+    margin: 0 0 0.75rem; font-weight: 600; letter-spacing: -0.015em;
+  }
+  .byline { font-family: var(--sans); font-size: 0.8125rem; color: var(--ink-faint); }
+  .byline span + span::before { content: "·"; margin: 0 0.5em; }
+
+  /* ---- structure ---- */
+  h2 {
+    font-family: var(--sans); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-muted); margin: 3rem 0 1rem;
+    padding-bottom: 0.4rem; border-bottom: 1px solid var(--rule);
+  }
+  h3 { font-size: 1.125rem; font-weight: 600; margin: 2rem 0 0.5rem; }
+  p { margin: 0 0 1.1rem; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  strong { font-weight: 650; }
+
+  /* ---- where this came from: scannable in five seconds, before anything else ---- */
+  .provenance {
+    font-family: var(--sans); font-size: 0.8125rem; line-height: 1.5;
+    border: 1px solid var(--rule); border-radius: 5px;
+    background: var(--paper-raised);
+    padding: 0.9rem 1.1rem; margin: 0 0 2rem;
+    display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem;
+  }
+  .provenance dt {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-muted);
+    padding-top: 0.15rem; white-space: nowrap;
+  }
+  .provenance dd { margin: 0; color: var(--ink); }
+  .provenance dd code { font-size: 0.85em; }
+  /* Use on the Source value when nothing external prompted the work. */
+  .self-directed { color: var(--caution); font-weight: 600; }
+
+  @media (max-width: 34rem) {
+    .provenance { grid-template-columns: 1fr; gap: 0.1rem; }
+    .provenance dt { padding-top: 0.6rem; }
+  }
+
+  /* ---- the one thing to read ---- */
+  .bottom-line {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 2rem;
+    font-size: 1.125rem;
+  }
+  .bottom-line p:last-child { margin-bottom: 0; }
+
+  /* ---- self-criticism gets its own voice ---- */
+  .caution {
+    background: var(--caution-soft);
+    border-left: 3px solid var(--caution);
+    border-radius: 0 4px 4px 0;
+    padding: 1rem 1.25rem;
+    margin: 0 0 1.5rem;
+    font-size: 0.9375rem;
+  }
+  .caution p:last-child { margin-bottom: 0; }
+
+  /* ---- tables: wide ones scroll, the page never does ---- */
+  .table-scroll { overflow-x: auto; margin: 0 0 1.5rem; -webkit-overflow-scrolling: touch; }
+  table { border-collapse: collapse; width: 100%; font-family: var(--sans); font-size: 0.875rem; }
+  th, td { text-align: left; padding: 0.55rem 0.85rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-muted);
+    border-bottom: 1.5px solid var(--ink-faint); white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* ---- code ---- */
+  code {
+    font-family: var(--mono); font-size: 0.8125em;
+    background: var(--paper-raised); border: 1px solid var(--rule);
+    border-radius: 3px; padding: 0.1em 0.35em;
+  }
+  pre {
+    font-family: var(--mono); font-size: 0.8125rem; line-height: 1.55;
+    background: var(--paper-raised); border: 1px solid var(--rule);
+    border-radius: 5px; padding: 1rem 1.1rem;
+    overflow-x: auto; margin: 0 0 1.5rem;
+  }
+  pre code { background: none; border: none; padding: 0; font-size: inherit; }
+
+  /* ---- figures: SVG only, sized by the page not the viewport ---- */
+  figure { margin: 2rem 0; }
+  figure svg { display: block; width: 100%; height: auto; overflow: visible; }
+  figcaption {
+    font-family: var(--sans); font-size: 0.8125rem; color: var(--ink-muted);
+    margin-top: 0.75rem; padding-left: 0.85rem; border-left: 2px solid var(--rule);
+  }
+  /* Give SVG text and strokes these classes so both themes stay legible. */
+  .svg-label { font-family: var(--sans); font-size: 11px; fill: var(--ink-muted); }
+  .svg-label-strong { font-family: var(--sans); font-size: 12px; font-weight: 600; fill: var(--ink); }
+  .svg-axis { stroke: var(--ink-faint); stroke-width: 1; }
+  .svg-grid { stroke: var(--rule); stroke-width: 1; }
+  .svg-box { fill: var(--paper-raised); stroke: var(--ink-faint); stroke-width: 1.25; }
+  .s1 { fill: var(--series-1); } .s2 { fill: var(--series-2); } .s3 { fill: var(--series-3); }
+  .s4 { fill: var(--series-4); } .s5 { fill: var(--series-5); }
+  .s1-stroke { stroke: var(--series-1); fill: none; stroke-width: 2; }
+  .s2-stroke { stroke: var(--series-2); fill: none; stroke-width: 2; }
+  .s3-stroke { stroke: var(--series-3); fill: none; stroke-width: 2; }
+
+  /* ---- key numbers ---- */
+  .figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 5px; overflow: hidden; margin: 0 0 2rem; }
+  .figures div { background: var(--paper-raised); padding: 1rem 1.1rem; }
+  .figures dt { font-family: var(--sans); font-size: 0.6875rem; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 0.35rem; }
+  .figures dd { margin: 0; font-family: var(--sans); font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .figures small { display: block; font-family: var(--sans); font-size: 0.75rem; font-weight: 400; color: var(--ink-faint); margin-top: 0.2rem; letter-spacing: 0; }
+
+  /* ---- sources ---- */
+  .sources { font-family: var(--sans); font-size: 0.8125rem; line-height: 1.55; }
+  .sources ol { padding-left: 1.4rem; margin: 0; }
+  .sources li { margin-bottom: 0.6rem; }
+  .sources code { font-size: 0.9em; }
+
+  ul, ol { margin: 0 0 1.2rem; padding-left: 1.4rem; }
+  li { margin-bottom: 0.4rem; }
+
+  footer { margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-family: var(--sans); font-size: 0.75rem; color: var(--ink-faint); }
+
+  @media print {
+    body { background: #fff; color: #000; padding: 0; font-size: 11pt; }
+    .bottom-line, .caution, pre, .figures div { background: #fff; }
+    h2 { page-break-after: avoid; }
+    figure, table { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<article class="page">
+
+  <header class="masthead">
+    <div class="kicker">LANE_NAME · Nightly Research</div>
+    <h1>TITLE -- the question you answered, specifically</h1>
+    <div class="byline"><span>DATE</span><span>MODEL</span><span>READING_TIME</span></div>
+  </header>
+
+  <!-- Where this came from. Required, and first, so the reader never has to guess
+       whether the work was prompted by something real. Name the source TYPE, not
+       just the subject. -->
+  <dl class="provenance">
+    <dt>Source</dt><dd>SOURCE_TYPE -- the specific origin, with identifier or link</dd>
+    <dt>Trigger</dt><dd>TRIGGER -- the sentence, ticket, or observation that started it</dd>
+    <dt>Chosen because</dt><dd>WHY_THIS_ONE -- over the other candidates in this lane</dd>
+  </dl>
+
+  <!-- The one paragraph that has to survive being read alone. -->
+  <div class="bottom-line">
+    <p>BOTTOM_LINE</p>
+  </div>
+
+  <!-- Optional. Only include when you have numbers you actually computed. -->
+  <dl class="figures">
+    <div><dt>Label</dt><dd>VALUE<small>qualifier</small></dd></div>
+  </dl>
+
+  <h2>Why this, now</h2>
+  <p>WHY_NOW -- what in the lane brief, the news, or your recent memos made this worth a night.</p>
+
+  <h2>What I found</h2>
+  <p>FINDINGS -- the substance. Code paths, computed numbers, quotes from sources.
+     Include what surprised you or contradicted your first guess.</p>
+
+  <!-- Diagrams and charts go inline as SVG. Use the .svg-* and .s1..s5 classes
+       so they stay legible in both themes. Never chart a number you did not
+       actually obtain. -->
+  <figure>
+    <svg viewBox="0 0 640 300" role="img" aria-label="DESCRIBE_THE_FIGURE"></svg>
+    <figcaption>CAPTION -- state what the reader should take from it, not what it is.</figcaption>
+  </figure>
+
+  <h2>What I would do about it</h2>
+  <p>RECOMMENDATION -- concrete, with rough effort and risk. "Nothing, and here is
+     why" is a good answer when it is the true one.</p>
+
+  <h2>Where I might be wrong</h2>
+  <div class="caution">
+    <p>WEAKNESSES -- the weakest link. What you could not verify, what you assumed,
+       what would change the conclusion.</p>
+  </div>
+
+  <h2>Sources</h2>
+  <div class="sources">
+    <ol>
+      <li>SOURCES -- real links and real file paths with line numbers. Include any
+          script or query you wrote so it can be re-run.</li>
+    </ol>
+  </div>
+
+  <footer>Generated unattended. Verify anything important before acting on it.</footer>
+
+</article>
+</body>
+</html>
