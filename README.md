@@ -1,5 +1,7 @@
 # personal ops
 
+![Ask once, and every Monday your Mac reads the week of Claude Code sessions stored on it. Three terminal windows each show the same correction, and Claude leaves a note: "No em dashes" came up 6 times in 4 projects, put it in CLAUDE.md once?](docs/overview.png)
+
 Scheduled jobs for your Mac, written with and run by Claude Code.
 
 ## The idea
@@ -42,6 +44,21 @@ needed), puts the engine in `~/.personal-ops-kit`, copies the built-in jobs into
 Code skill. Then open the dashboard at http://127.0.0.1:7777.
 
 Or just ask Claude Code: "install personal ops from github.com/MiniCodeMonkey/personal-ops-kit".
+
+## After installing
+
+1. **Open the dashboard** at http://127.0.0.1:7777 (or run `jobctl open`). It
+   lists the built-in jobs, when each runs next, and what each last produced.
+2. **Give the research job your topics.** Replace the three example files in
+   `~/personal-ops/nightly-research/lanes/` with subjects you care about (see
+   [Add research lanes](#add-research-lanes)). Until you do, it researches the
+   examples.
+3. **Try a job now** instead of waiting for its schedule:
+   `jobctl run platform-audit` finishes in seconds and uses no Claude tokens.
+   Its report appears on the dashboard.
+4. **Pause anything you do not want** with `jobctl pause <job>`.
+5. **Make your first own job** by asking Claude Code for it (see
+   [Add a job](#add-a-job)).
 
 ## Built-in jobs
 
@@ -108,6 +125,7 @@ skips when the laptop is on battery with the lid closed. Leave
 jobctl list                  # jobs, schedules, last runs
 jobctl run <job>             # run one now (--force skips the gate)
 jobctl logs <job>            # the latest run's output
+jobctl pause <job>           # stop scheduling it (resume <job> to undo)
 jobctl open                  # the dashboard
 jobctl reload                # after editing a job.env
 jobctl update                # get the latest engine

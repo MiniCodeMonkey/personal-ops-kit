@@ -1,0 +1,98 @@
+<!doctype html>
+<!-- Source for overview.png. Regenerate with:
+     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --hide-scrollbars \
+       --window-size=1400,770 --force-device-scale-factor=2 --virtual-time-budget=3000 \
+       --screenshot=docs/overview.png docs/overview.html -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=block" rel="stylesheet">
+<style>
+  :root { --paper:#F3F0EA; --card:#FBFAF7; --ink:#1F1E1B; --muted:#8C877E; --rule:#D8D2C7; --accent:#B9573A; }
+  * { box-sizing:border-box; margin:0; }
+  html, body { width:1400px; height:770px; background:var(--paper); }
+  body { font-family:Inter, sans-serif; color:var(--ink); padding:56px 80px; -webkit-font-smoothing:antialiased; position:relative; }
+  .top { display:flex; justify-content:space-between; font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+  .grid { display:grid; grid-template-columns:520px 1fr; gap:30px; margin-top:44px; }
+  h1 { font-size:42px; font-weight:500; letter-spacing:-.025em; line-height:1.14; }
+  .label { font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-top:36px; }
+  .quote { font-size:21px; line-height:1.4; margin-top:10px; }
+  .steps { margin-top:36px; display:grid; grid-template-columns:112px 1fr; row-gap:8px; font-size:15px; line-height:1.5; color:var(--muted); }
+  .steps b { color:var(--ink); font-weight:500; }
+  svg { display:block; margin-top:8px; }
+  svg text { font-family:Inter, sans-serif; }
+  svg .mono { font-family:"JetBrains Mono", monospace; }
+  .foot { position:absolute; left:80px; right:80px; bottom:48px; display:flex; gap:40px; font-size:14px; color:var(--muted); border-top:1px solid var(--rule); padding-top:18px; }
+</style>
+</head>
+<body>
+  <div class="top"><span>personal ops</span><span>scheduled jobs for your Mac</span></div>
+  <div class="grid">
+    <div>
+      <h1>Small jobs that read what is already on your Mac, and only bother Claude when there is news.</h1>
+      <div class="label">You ask once</div>
+      <div class="quote">“Every Monday, read my Claude Code sessions from the week and tell me what I keep repeating.”</div>
+      <div class="steps">
+        <b>Monday 07:00</b><span>Plain code boils the week's transcripts to a digest.</span>
+        <b>Quiet week</b><span>Nothing repeated. Seconds, no Claude, no cost.</span>
+        <b>This week</b><span>One pattern. Claude reads it and leaves a note.</span>
+      </div>
+    </div>
+
+    <svg width="690" height="500" viewBox="0 0 700 500" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round">
+      <defs>
+        <g id="win">
+          <rect x="0" y="0" width="380" height="200" rx="6" fill="var(--card)"/>
+          <line x1="0" y1="30" x2="380" y2="30" stroke="var(--rule)"/>
+          <circle cx="16" cy="15" r="4"/><circle cx="30" cy="15" r="4"/><circle cx="44" cy="15" r="4"/>
+        </g>
+      </defs>
+
+      <!-- back window: Monday. Only its bottom strip shows, and that is where its repeat line sits. -->
+      <g transform="translate(0 150)">
+        <use href="#win"/>
+        <text x="20" y="183" font-size="12" class="mono" fill="var(--accent)" stroke="none">> no em dashes, use a comma</text>
+        <text x="360" y="183" font-size="11" class="mono" fill="var(--muted)" stroke="none" text-anchor="end">Mon · geocodio</text>
+      </g>
+      <!-- middle window: Tuesday -->
+      <g transform="translate(40 110)">
+        <use href="#win"/>
+        <text x="20" y="183" font-size="12" class="mono" fill="var(--accent)" stroke="none">> no em dashes please</text>
+        <text x="360" y="183" font-size="11" class="mono" fill="var(--muted)" stroke="none" text-anchor="end">Tue · ops-kit</text>
+      </g>
+      <!-- front window: Thursday -->
+      <g transform="translate(80 70)">
+        <use href="#win"/>
+        <text x="60" y="19" font-size="11" class="mono" fill="var(--muted)" stroke="none">claude · ~/projects/blog · Thu</text>
+        <g fill="var(--rule)" stroke="none">
+          <rect x="20" y="50" width="230" height="6" rx="3"/><rect x="20" y="66" width="160" height="6" rx="3"/>
+          <rect x="20" y="82" width="200" height="6" rx="3"/>
+        </g>
+        <text x="20" y="118" font-size="12" class="mono" fill="var(--accent)" stroke="none">> again, no em dashes</text>
+        <g fill="var(--rule)" stroke="none">
+          <rect x="20" y="134" width="260" height="6" rx="3"/><rect x="20" y="150" width="110" height="6" rx="3"/>
+          <rect x="20" y="166" width="190" height="6" rx="3"/>
+        </g>
+      </g>
+
+      <text x="0" y="388" font-size="13" fill="var(--muted)" stroke="none">A week of sessions, kept on your Mac in ~/.claude</text>
+
+      <!-- Claude's note, under the stack -->
+      <g transform="translate(410 320)">
+        <rect x="0" y="0" width="290" height="156" rx="4" fill="var(--card)" stroke="var(--rule)"/>
+        <text x="20" y="34" font-size="15" font-weight="600" fill="var(--ink)" stroke="none">One thing you keep saying</text>
+        <text x="20" y="62" font-size="13" fill="var(--muted)" stroke="none">“No em dashes” came up 6 times</text>
+        <text x="20" y="82" font-size="13" fill="var(--muted)" stroke="none">in 4 projects this week.</text>
+        <text x="20" y="110" font-size="13" fill="var(--ink)" stroke="none">Put it in CLAUDE.md once?</text>
+        <text x="20" y="138" font-size="12" class="mono" fill="var(--muted)" stroke="none">Mon 07:00 · one Claude call</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="foot">
+    <span>Runs on your Mac, so it can read your own sessions, files and tools</span>
+    <span>Passwords and keys stay locked away</span>
+    <span>Takes a day off when your Claude usage is high</span>
+  </div>
+</body>
+</html>
